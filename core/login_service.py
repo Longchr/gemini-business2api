@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, List, Optional
 from core.account import load_accounts_from_source
 from core.base_task_service import BaseTask, BaseTaskService, TaskCancelledError, TaskStatus
 from core.config import config
-from core.duckmail_client import DuckMailClient
+from core.mail_providers import create_temp_mail_client
 from core.gemini_automation import GeminiAutomation
 from core.gemini_automation_uc import GeminiAutomationUC
 from core.microsoft_mail_client import MicrosoftMailClient
@@ -173,31 +173,19 @@ class LoginService(BaseTaskService[LoginTask]):
                 log_callback=log_cb,
             )
             client.set_credentials(mail_address)
-        elif mail_provider == "duckmail":
+        elif mail_provider in ("duckmail", "moemail"):
             if not mail_password:
-                return {"success": False, "email": account_id, "error": "邮箱密码缺失"}
-            # DuckMail: account_id 就是邮箱地址
-            client = DuckMailClient(
-                base_url=config.basic.duckmail_base_url,
+                error_message = "邮箱密码缺失" if mail_provider == "duckmail" else "mail password (email_id) missing"
+                return {"success": False, "email": account_id, "error": error_message}
+            # DuckMail: account_id 就是邮箱地址; Moemail: mail_password 存储的是 email_id
+            client = create_temp_mail_client(
+                mail_provider,
                 proxy=config.basic.proxy_for_auth,
-                verify_ssl=config.basic.duckmail_verify_ssl,
-                api_key=config.basic.duckmail_api_key,
-                log_callback=log_cb,
+                log_cb=log_cb,
             )
             client.set_credentials(account_id, mail_password)
-        elif mail_provider == "moemail":
-            from core.moemail_client import MoemailClient
-            if not mail_password:
-                return {"success": False, "email": account_id, "error": "mail password (email_id) missing"}
-            # Moemail: mail_password 存储的是 email_id
-            client = MoemailClient(
-                base_url=config.basic.moemail_base_url,
-                proxy=config.basic.proxy,
-                api_key=config.basic.moemail_api_key,
-                log_callback=log_cb,
-            )
-            client.set_credentials(account_id, mail_password)
-            client.email_id = mail_password  # 设置 email_id 用于获取邮件
+            if mail_provider == "moemail":
+                client.email_id = mail_password  # 设置 email_id 用于获取邮件
         else:
             return {"success": False, "email": account_id, "error": f"不支持的邮件提供商: {mail_provider}"}
 

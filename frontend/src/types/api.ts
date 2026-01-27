@@ -66,6 +66,8 @@ export interface Stats {
   requests_per_hour: number
 }
 
+export type TempMailProvider = 'duckmail' | 'moemail'
+
 export interface Settings {
   basic: {
     api_key?: string
@@ -75,7 +77,7 @@ export interface Settings {
     duckmail_base_url?: string
     duckmail_api_key?: string
     duckmail_verify_ssl?: boolean
-    temp_mail_provider?: string
+    temp_mail_provider?: TempMailProvider
     moemail_base_url?: string
     moemail_api_key?: string
     moemail_domain?: string

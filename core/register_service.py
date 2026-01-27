@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, List, Optional
 from core.account import load_accounts_from_source
 from core.base_task_service import BaseTask, BaseTaskService, TaskCancelledError, TaskStatus
 from core.config import config
-from core.duckmail_client import DuckMailClient
+from core.mail_providers import create_temp_mail_client
 from core.gemini_automation import GeminiAutomation
 from core.gemini_automation_uc import GeminiAutomationUC
 
@@ -138,23 +138,12 @@ class RegisterService(BaseTaskService[RegisterTask]):
 
         log_cb("info", f"📧 步骤 1/3: 注册临时邮箱 (提供商={temp_mail_provider})...")
 
-        if temp_mail_provider == "moemail":
-            from core.moemail_client import MoemailClient
-            client = MoemailClient(
-                base_url=config.basic.moemail_base_url,
-                proxy=config.basic.proxy_for_auth,
-                api_key=config.basic.moemail_api_key,
-                domain=domain or config.basic.moemail_domain,
-                log_callback=log_cb,
-            )
-        else:
-            client = DuckMailClient(
-                base_url=config.basic.duckmail_base_url,
-                proxy=config.basic.proxy_for_auth,
-                verify_ssl=config.basic.duckmail_verify_ssl,
-                api_key=config.basic.duckmail_api_key,
-                log_callback=log_cb,
-            )
+        client = create_temp_mail_client(
+            temp_mail_provider,
+            domain=domain,
+            proxy=config.basic.proxy_for_auth,
+            log_cb=log_cb,
+        )
 
         if not client.register_account(domain=domain):
             log_cb("error", f"❌ {temp_mail_provider} 邮箱注册失败")

@@ -287,6 +287,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useSettingsStore } from '@/stores/settings'
 import { useToast } from '@/composables/useToast'
+import { defaultMailProvider, mailProviderOptions } from '@/constants/mailProviders'
 import SelectMenu from '@/components/ui/SelectMenu.vue'
 import Checkbox from '@/components/ui/Checkbox.vue'
 import HelpTip from '@/components/ui/HelpTip.vue'
@@ -319,10 +320,7 @@ const browserEngineOptions = [
   { label: 'UC - 支持无头/有头', value: 'uc' },
   { label: 'DP - 支持无头/有头（推荐）', value: 'dp' },
 ]
-const tempMailProviderOptions = [
-  { label: 'DuckMail', value: 'duckmail' },
-  { label: 'Moemail', value: 'moemail' },
-]
+const tempMailProviderOptions = mailProviderOptions
 const imageOutputOptions = [
   { label: 'Base64 编码', value: 'base64' },
   { label: 'URL 链接', value: 'url' },
@@ -375,7 +373,7 @@ watch(settings, (value) => {
   next.basic.duckmail_api_key = typeof next.basic.duckmail_api_key === 'string'
     ? next.basic.duckmail_api_key
     : ''
-  next.basic.temp_mail_provider = next.basic.temp_mail_provider || 'duckmail'
+  next.basic.temp_mail_provider = next.basic.temp_mail_provider || defaultMailProvider
   next.basic.moemail_base_url = next.basic.moemail_base_url || 'https://moemail.app'
   next.basic.moemail_api_key = typeof next.basic.moemail_api_key === 'string'
     ? next.basic.moemail_api_key
